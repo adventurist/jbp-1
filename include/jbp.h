@@ -7,8 +7,8 @@ struct Bot {
 };
 
 void scan(struct Bot* bot) {
-  bot->location.latitude = bot->location.latitude + 3;
-  bot->location.longitude = bot->location.longitude + 2 ;
+  bot->location.latitude = bot->location.latitude + 3 * 0.9;
+  bot->location.longitude = bot->location.longitude + 2 * 0.9;
   bot->orientation++;
   if (bot->orientation == 360) {
     bot->orientation = 0;

@@ -6,8 +6,8 @@ struct Dimensions {
 };
 
 struct GeoL {
-  long double longitude;
-  long double latitude;
+  float longitude;
+  float latitude;
 };
 
 struct Object {

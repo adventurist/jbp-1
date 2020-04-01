@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
   for (size_t i = 0; i < 50; ++i) {
 	  scan(&bot);
 	  trace_printf("Orientation is %d\n", bot.orientation);
-	  trace_printf("Location is %fL latitude and %fL latitude\n", bot.location.latitude, bot.location.longitude);
+	  trace_printf("Location is %f latitude and %f latitude\n", bot.location.latitude, bot.location.longitude);
     }
 
   timer.sleep (Timer::FREQUENCY_HZ);
