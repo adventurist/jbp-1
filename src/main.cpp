@@ -14,6 +14,8 @@
 
 Bot bot;
 
+static GeoL final_destination{.longitude = 88.88, .latitude = 77.77};
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wmissing-declarations"
@@ -32,6 +34,19 @@ int main(int argc, char* argv[]) {
 	  scan(&bot);
 	  trace_printf("Orientation is %d\n", bot.orientation);
 	  trace_printf("Location is %f latitude and %f latitude\n", bot.location.latitude, bot.location.longitude);
+
+	  if (&(bot.object) != nullptr) {
+        trace_printf("Object found\n");
+        float distance_to_object = bot.targetObject();
+        trace_printf("Distance to object: %f\n, ", distance_to_object);
+        if (distance_to_object > 0.0) {
+        	bot.approach(bot.object->location);
+        	bot.transmitUART();
+        	bot.deployArm();
+        	bot.graspObject();
+        	bot.approach(final_destination);
+        }
+	  }
     }
 
   timer.sleep (Timer::FREQUENCY_HZ);
