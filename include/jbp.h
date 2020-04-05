@@ -1,60 +1,38 @@
-#include "structs.h"
+#include <math.h>
+#include <util.h>
 
 struct Bot {
-  struct GeoL location;
+  GeoLocation<float> location;
   Object* object;
   int orientation;
 
+  Bot() : location(GeoLocation<float>{0.0f, 0.0f}), object(nullptr), orientation(0) {}
+
   ~Bot() {
-	  if (object != nullptr) {
-		  delete object;
-	  }
+    if (object != nullptr) {
+      delete object;
+    }
   }
-  float targetObject() {
-	  if (object != nullptr) {
-	    float lg_distance = location.longitude - object->location.longitude;
-	    float la_distance = location.latitude - object->location.latitude;
-
-	    return lg_distance + la_distance;
-	  }
-	  return 0.0F;
-  }
-  
-  void approach(GeoL destination) {
-	  if (object != nullptr) {
-		  location.longitude = destination.longitude;
-		  location.latitude = destination.latitude;
-	  }
+  float measureDistanceTo(GeoLocation<float> destination) {
+    return GeoLocation<float>::distanceBetween(location, destination);
   }
 
-  void transmitUART() {
-	  // update and synchronize controller states
+  void move(GeoLocation<float> destination) {
+    location = GeoLocation<float>{destination.longitude, destination.latitude};
   }
 
-  void deployArm() {
-	  // deploy
+  void scan() {
+    orientation = getRandom<int>();
+    location = getLocation();
+
+    if (searchForObject()) { // luck of the draw
+      // Object discovered. Determine location
+      object = new Object{location};
+      object->dimensions = measureObject(object);
+    }
   }
 
-  void graspObject() {
-
-  }
-
-
-
+  void transmitUART() {}
+  void deployArm() {}
+  void graspObject() {}
 };
-
-void scan(struct Bot* bot) {
-  bot->location.latitude = bot->location.latitude + 3 * getRandom();
-  bot->location.longitude = bot->location.longitude + 2 * getRandom();
-  bot->orientation = bot->orientation + getRandom();
-  if (bot->orientation == 360) {
-    bot->orientation = 0;
-  }
-  if (getRandom() > 5) {
-	  bot->object = new Object{};
-	  bot->object->dimensions = Dimensions{.height = getRandom(), .width = getRandom(), .length = getRandom()};
-	  bot->object->location = GeoL{.longitude = 180 / getRandom(), .latitude = 90 / getRandom()};
-  }
-}
-
-

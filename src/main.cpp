@@ -1,20 +1,16 @@
 // ----------------------------------------------------------------------------
 #include <stdio.h>
 #include <stdlib.h>
-#include "diag/Trace.h"
+#include <diag/Trace.h>
 
-#include "Timer.h"
-#include "jbp.h"
+#include <Timer.h>
+#include <jbp.h>
 
 #if defined(STM32F401xE)
 #warning "Assume a NUCLEO-F401RE board, PA5, active high."
 #elif defined(STM32F407xx)
 #warning "Assume a STM32F4-Discovery board, PD12-PD15, active high."
 #endif
-
-Bot bot;
-
-static GeoL final_destination{.longitude = 88.88, .latitude = 77.77};
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -23,37 +19,41 @@ static GeoL final_destination{.longitude = 88.88, .latitude = 77.77};
 
 int main(int argc, char* argv[]) {
   trace_dump_args(argc, argv);
-  trace_puts("JBP Begin!");
   trace_printf("System clock: %u Hz\n", SystemCoreClock);
 
   Timer timer;
   timer.start ();
   timer.sleep (Timer::FREQUENCY_HZ);
 
-  for (size_t i = 0; i < 50; ++i) {
-	  scan(&bot);
-	  trace_printf("Orientation is %d\n", bot.orientation);
-	  trace_printf("Location is %f latitude and %f latitude\n", bot.location.latitude, bot.location.longitude);
+  Bot bot;
 
-	  if (&(bot.object) != nullptr) {
+  do {
+    bot.scan();
+	  trace_printf(
+      "Orientation is %d\nLocation is %f latitude and %f latitude\n",
+      bot.orientation,
+      bot.location.latitude,
+      bot.location.longitude
+    );
+
+	  if (bot.object != nullptr) {
         trace_printf("Object found\n");
-        float distance_to_object = bot.targetObject();
-        trace_printf("Distance to object: %f\n, ", distance_to_object);
-        if (distance_to_object > 0.0) {
-        	bot.approach(bot.object->location);
-        	bot.transmitUART();
-        	bot.deployArm();
-        	bot.graspObject();
-        	bot.approach(final_destination);
+        bot.deployArm();
+        bot.graspObject();
+
+        GeoLocation<float> destination = getLocation();
+        float distance_to_destination = bot.measureDistanceTo(destination);
+        trace_printf("Distance to destination: %f\n ", distance_to_destination);
+
+        if (distance_to_destination > 0.0) {
+        	bot.move(destination);
         }
 	  }
-    }
+  } while (bot.object == nullptr); // No object
 
   timer.sleep (Timer::FREQUENCY_HZ);
 
   return 0;
 }
-
 #pragma GCC diagnostic pop
-
 // ----------------------------------------------------------------------------
