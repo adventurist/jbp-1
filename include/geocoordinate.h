@@ -1,5 +1,6 @@
 #include <type_traits>
 #include <utility>
+#include <limits>
 
 #define First(x) std::get<0>(x)
 #define Second(x) std::get<1>(x)
@@ -16,19 +17,19 @@ class GeoCoordinate {
   struct Coordinate {
     DegreeValue degree;
     T limit;
+
     Coordinate(T value) : degree(value) {
       if constexpr (std::is_same_v<NumericalType, Longitude>) {
         limit = 180;
       } else if constexpr (std::is_same_v<NumericalType, Latitude>) {
         limit = 90;
+      } else {
+    	  limit = std::numeric_limits<NumericalType>::max();
       }
     }
-    Coordinate operator+(const Coordinate& other) {
-      auto long_this = *this;
-      auto l1 = long_this.degree;
-      auto l2 = other.degree;
-      CoordPair p{l1, l2};
 
+    Coordinate operator+(const Coordinate& other) {
+      CoordPair p{this->degree, other.degree};
       if ((First(p) + Second(p)) > limit) {
         auto diff = limit - First(p);
         auto remain = Second(p) - diff;
@@ -38,12 +39,7 @@ class GeoCoordinate {
     }
 
     Coordinate operator-(const Coordinate& other) {
-      auto long_this = *this;
-      auto l1 = long_this.degree;
-      auto l2 = other.degree;
-
-      CoordPair p{l1, l2};
-
+      CoordPair p{this->degree, other.degree};
       if ((First(p) - Second(p)) < -limit) {
         auto diff = -limit - First(p);
         auto remain = diff - Second(p);
@@ -52,7 +48,7 @@ class GeoCoordinate {
       return Coordinate(First(p) - Second(p));
     }
   };
-  // Member
+  // The coordinate value member
   Coordinate<T> value;
 };
 
