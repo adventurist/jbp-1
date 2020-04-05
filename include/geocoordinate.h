@@ -1,10 +1,17 @@
+#ifndef __geocoordinates_h__
+#define __geocordinates_h__
+
 #include <type_traits>
 #include <utility>
 #include <limits>
 
+// Replace default tuple access interface
 #define First(x) std::get<0>(x)
 #define Second(x) std::get<1>(x)
 
+/**
+ * GeoCoordinate of type Longitude or Latitude
+ */
 template <typename T>
 class GeoCoordinate {
   typedef T DegreeValue;
@@ -13,6 +20,10 @@ class GeoCoordinate {
  public:
   typedef DegreeValue Longitude;
   typedef DegreeValue Latitude;
+
+  /**
+   * Coordinate with overloads
+   */
   template <typename NumericalType>
   struct Coordinate {
     DegreeValue degree;
@@ -24,10 +35,13 @@ class GeoCoordinate {
       } else if constexpr (std::is_same_v<NumericalType, Latitude>) {
         limit = 90;
       } else {
-    	  limit = std::numeric_limits<NumericalType>::max();
+    	limit = std::numeric_limits<NumericalType>::max(); // error
       }
     }
 
+    /**
+     * Overload operators to constrain range
+     */
     Coordinate operator+(const Coordinate& other) {
       CoordPair p{this->degree, other.degree};
       if ((First(p) + Second(p)) > limit) {
@@ -52,16 +66,25 @@ class GeoCoordinate {
   Coordinate<T> value;
 };
 
+/**
+ * GeoLocation
+ */
 template <typename T>
 class GeoLocation {
-
  public:
+  /**
+   * constructor
+   */
   GeoLocation<T>(T lng, T lat) : longitude(lng), latitude(lat) {}
-
+  /* members */
   typename GeoCoordinate<T>::Longitude longitude;
   typename GeoCoordinate<T>::Latitude latitude;
-
+/**
+ * Utility function
+ */
   static T distanceBetween(GeoLocation<T> origin, GeoLocation<T> destination) {
+	// implement - http://www.movable-type.co.uk/scripts/latlong-vincenty.html
     return T{};
   }
 };
+#endif // __geocoordinates_h__
